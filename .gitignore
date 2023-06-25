@@ -2,4 +2,5 @@ slides
 other
 solutions
 */__pycache__
+*.pyc
 
