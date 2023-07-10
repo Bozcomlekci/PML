@@ -281,12 +281,8 @@ def mlp(params, inputs, nonlinearity=jax.nn.relu):
     """
     result = inputs
     for w_i, b_i in params[:-1]:
-        #print("w_i", w_i.shape)
-        #print("b_i", b_i.shape)
         result = nonlinearity(jnp.dot(result, w_i) + b_i)
     #
-    #print("final_w", jnp.array(params[-1][0]).shape)
-    #print("final_b", jnp.array(params[-1][1]).shape)
     final_w, final_b = params[-1]
     logits = jnp.dot(result, final_w) + final_b
     return logits[..., 0]
@@ -435,7 +431,7 @@ class LossFnWrapper:
         return loss_fn(params, self.inputs, self.targets, self.l2_reg)
 
 #%% Recompute Hessian
-def compute_hessian_lastlayer(params, bmnist):
+def compute_hessian_lastlayer(params, bmnist, enable_assertions=False):
     """
     This function computes the Hessian of ``loss_fn`` with respect to
     the last-layer parameters, over the test subset of ``bmnist``.
@@ -453,27 +449,24 @@ def compute_hessian_lastlayer(params, bmnist):
     """
     test_inputs = bmnist["x_test"].reshape(len(bmnist["x_test"]), -1)
     test_targets = bmnist["y_test"]
-    repackaged_params = params.copy() 
 
     def loss_wrapper(last_layer_params):
         w = last_layer_params[:-1].reshape(last_layer_params[:-1].shape[0], 1)
         b = jnp.array([last_layer_params[-1]])
-        _repackaged_params = repackaged_params.copy()
-        _repackaged_params[-1] =  (w,b)
-        for idx, mp in enumerate(repackaged_params):
-            assert repackaged_params[idx][0].shape == _repackaged_params[idx][0].shape , f"idx {idx} {repackaged_params[idx][0].shape} != {_repackaged_params[idx][0].shape}"
-            assert repackaged_params[idx][1].shape == _repackaged_params[idx][1].shape 
-        return loss_fn(_repackaged_params, test_inputs, test_targets, 1e-10) 
+        new_params = params.copy()
+        new_params[-1] =  (w,b)
+        if enable_assertions: 
+            for idx, mp in enumerate(new_params):
+                assert new_params[idx][0].shape == new_params[idx][0].shape , f"idx {idx} {repackaged_params[idx][0].shape} != {_repackaged_params[idx][0].shape}"
+                assert new_params[idx][1].shape == new_params[idx][1].shape 
+        return loss_fn(new_params, test_inputs, test_targets, 1e-10) 
 
-    last_params = jnp.append(*repackaged_params[-1])
+    last_params = jnp.append(*params[-1])
     H_matrix = jax.hessian(loss_wrapper)(last_params)
     
     return H_matrix 
 
 H_matrix = compute_hessian_lastlayer(MAP_PARAMS, bmnist)
-
-
-
 
 #%%
 # compute last-layer Hessian
@@ -510,7 +503,7 @@ def map_confidence(params, bmnist, batch_size=50):
     result = []
     for x_batch, y_batch in test_dataloader(bmnist, batch_size):
         x_batch = x_batch.reshape(len(x_batch), -1)
-        logits = mlp(params, x_batch)
+        logits = mlp(params, x_batch) # 50,
         confidences = jax.nn.sigmoid(abs(logits))
         result.extend(confidences)
     #
@@ -519,7 +512,7 @@ def map_confidence(params, bmnist, batch_size=50):
 
 
 @jax.jit
-def compute_jacobian_lastlayer(params, inputs):
+def compute_jacobian_lastlayer(params, inputs, enable_assertions=False):
     """
     This function computes the Jacobian of ``mlp`` with respect to
     the last-layer parameters, given the ``inputs``.
@@ -531,27 +524,30 @@ def compute_jacobian_lastlayer(params, inputs):
       containing the partial derivatives of the ``mlp`` outputs with
       respect to the last-layer parameters.
     """
-    test_inputs  = inputs #bmnist["x_test"].reshape(len(bmnist["x_test"]), -1)
+    def mlp_output_wrapper(new_last_layer_params, inputs):
+        w = new_last_layer_params[:-1].reshape(new_last_layer_params[:-1].shape[0], 1)
+        b = jnp.array([new_last_layer_params[-1]])
+        new_params = params.copy()
+        new_params[-1] =  (w,b)
 
-    def mlp_output_wrapper(last_layer_params, inputs):
-        w = last_layer_params[:-1].reshape(last_layer_params[:-1].shape[0], 1)
-        b = jnp.array([last_layer_params[-1]])
-        _repackaged_params = params.copy()
-        _repackaged_params[-1] =  (w,b)
 
-        for idx, mp in enumerate(params):
-            assert params[idx][0].shape == _repackaged_params[idx][0].shape , f"idx {idx} {repackaged_params[idx][0].shape} != {_repackaged_params[idx][0].shape}"
-            assert params[idx][1].shape == _repackaged_params[idx][1].shape 
-        mlp_out = mlp(_repackaged_params, inputs) 
-        return mlp_out 
+        if enable_assertions:
+            for idx, mp in enumerate(params):
+                assert params[idx][0].shape == new_params[idx][0].shape , f"idx {idx} {repackaged_params[idx][0].shape} != {_repackaged_params[idx][0].shape}"
+                assert params[idx][1].shape == new_params[idx][1].shape 
+
+        return mlp(new_params, inputs)
 
     last_params = jnp.append(*params[-1])
     J_vec = jax.jacobian(mlp_output_wrapper)(last_params, inputs)
     return J_vec
 
-
-def la_predictive_confidence(params, bmnist, h_ews, h_evs, 
-                             prior_precision=1, batch_size=50):
+def la_predictive_confidence(params, 
+                             bmnist, 
+                             h_ews, h_evs, 
+                             prior_precision=1, 
+                             batch_size=50, 
+                             enable_assertions=False):
     """
     This function computes and returns ``sigmoid(abs(z(x)))`` over the
     whole test subset, i.e. the LA predictive confidence as derived
@@ -570,22 +566,33 @@ def la_predictive_confidence(params, bmnist, h_ews, h_evs,
     :returns: One confidence scalar per entry in the test subset, correspoding
       to the LA predictive confidence ``sigmoid(abs(z(x)))``.
     """
-    neg_psi  = compute_hessian_lastlayer(params, bmnist, batch_size=batch_size)
+    neg_psi_inv = h_evs @ jnp.diag(1 / (h_ews + prior_precision)) @ h_evs.T
     
+    if enable_assertions:
+        assert neg_psi_inv.shape == (len(h_ews), len(h_ews))
+        assert neg_psi_inv.shape == (65, 65)
     result = []
 
     for x_batch, y_batch in test_dataloader(bmnist, batch_size):
         x_batch = x_batch.reshape(len(x_batch), -1)
-        logits = mlp(params, x_batch) # f(x', \theta*)
+        logits = mlp(params, x_batch) 
         j_vec = compute_jacobian_lastlayer(params, x_batch) 
-        1 + (jnp.pi / 8.0) * j_vec.T @ jnp.linalg.inv(neg_psi) @ j_vec
-        # x batchwill be 50 
-        #confidences = jax.nn.sigmoid(abs(logits))
+        if enable_assertions:
+            assert j_vec.shape == (len(x_batch), 65), f"j_vec.shape {j_vec.shape}"
+        results = j_vec @ neg_psi_inv @ j_vec.T
+        diagonal_entries = jnp.diag(results)
 
-        result.extend(confidences)
-    #
+        if enable_assertions:
+            for idx in range(len(diagonal_entries)):
+                assert jnp.isclose(diagonal_entries[idx] , j_vec[idx, :] @ neg_psi_inv @ j_vec[idx, :].T) , f"idx {idx} {diagonal_entries[idx]} != {j_vec[idx, :] @ neg_psi_inv @ j_vec[idx, :].T}"
+
+        confidences  = jax.nn.sigmoid(abs(logits / (1 + jnp.pi/8 * diagonal_entries)))
+        if enable_assertions:
+            assert jnp.allclose(results, results.T), "Results, not symmetric."
+            assert confidences.shape == (len(x_batch),), f"confidences.shape {confidences.shape}"  
+        result.extend(confidences)  
     result = jnp.array(result)
-    # raise NotImplementedError("TODO")
+    return result
 
 #%% Compute Last Layer Jacobian.
 J = compute_jacobian_lastlayer(MAP_PARAMS, bmnist['x_test'].reshape(len(bmnist['x_test']), -1))
@@ -593,6 +600,8 @@ J = compute_jacobian_lastlayer(MAP_PARAMS, bmnist['x_test'].reshape(len(bmnist['
 # compute MAP and LA predictive confidences over the test set for different precision hyperpars
 PRIOR_PRECISIONS = [1, 3, 10, 30, 100]
 MAP_CONFS = map_confidence(MAP_PARAMS, bmnist)
+#%%
+la_predictive_confidence(MAP_PARAMS, bmnist, H_ews, H_evs, prior_precision=1)
 #%%
 LAP_CONFS = {pp: la_predictive_confidence(MAP_PARAMS, bmnist, H_ews, H_evs, prior_precision=pp)
              for pp in PRIOR_PRECISIONS}
@@ -606,5 +615,90 @@ for pp, confs in LAP_CONFS.items():
     ax.plot(sorted(confs), label=f"LA predictive (precision: {pp})")
 ax.legend()
 fig.suptitle("binary MNIST test set confidences\nsorted in ascending order");
-#%%
+#%% Inspection of the results
+def retrieve_interesting_samples(confidences, targets, num_samples=5):
+    """
+    :param confidences: Numpy array of floats determining how confident
+      is a given classification.
+    :param targets: Numpy array of ground truth scalars ``y_i`` given in
+      same order as confidences.
+    :returns: A dictionary ``{"posmax": [idx1, idx2, ...], "posmin": [...],
+      "negmax": [...], "negmin": [...]}`` with the indexes for the N
+      labeled "positive" examples with largest confidence, the N "positive"
+      examples with smallest confidence, the N "negative" examples with
+      largest confidence and the N "negative" examples with smallest
+      confidence, where N is ``num_samples``.
+    """
+    pos_idxs = (targets == 1).nonzero()[0]
+    neg_idxs = (targets == 0).nonzero()[0]
+    #
+    assert num_samples >= 1, "Number of samples must be positive!"
+    assert len(pos_idxs) >= num_samples, "Less positive predictions than num_samples!"
+    assert len(neg_idxs) >= num_samples, "Less negative predictions than num_samples!"
+    #    
+    posmax_idxs = np.argpartition(confidences[pos_idxs], -num_samples)[-num_samples:]
+    posmin_idxs = np.argpartition(confidences[pos_idxs], num_samples)[:num_samples]
+    negmax_idxs = np.argpartition(confidences[neg_idxs], -num_samples)[-num_samples:]
+    negmin_idxs = np.argpartition(confidences[neg_idxs], num_samples)[:num_samples]
+    #
+    result = {"posmax": pos_idxs[posmax_idxs],
+              "posmin": pos_idxs[posmin_idxs],
+              "negmax": neg_idxs[negmax_idxs],
+              "negmin": neg_idxs[negmin_idxs]}
+    return result
 
+
+# Also gather the targets using functionality from last week
+targets = test_predictions(get_params(opt_state), bmnist, 
+                           BATCH_SIZE, CLASSIFICATION_THRESHOLD)[2]
+#%%
+confidences = np.array(MAP_CONFS)
+metric = "MAP"
+NUM_SAMPLES = 10
+ROUNDING_DECIMALS = 5
+# gather interesting samples
+interesting = retrieve_interesting_samples(confidences, np.array(targets), NUM_SAMPLES)
+
+# Plot "clear" examples
+inspect_batch(bmnist["x_test"][interesting["posmax"]], 
+              confidences[interesting["posmax"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Clear positives ({metric})")
+
+inspect_batch(bmnist["x_test"][interesting["negmax"]],
+              confidences[interesting["negmax"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Clear negatives ({metric})")
+
+# Plot "confusing" examples
+inspect_batch(bmnist["x_test"][interesting["posmin"]], 
+              confidences[interesting["posmin"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Confusing positives ({metric})")
+
+inspect_batch(bmnist["x_test"][interesting["negmin"]], 
+              confidences[interesting["negmin"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Confusing negatives ({metric})");
+#%%
+confidences = np.array(LAP_CONFS[10])
+metric = "LA-posterior"
+NUM_SAMPLES = 10
+ROUNDING_DECIMALS = 5
+# gather interesting samples
+interesting = retrieve_interesting_samples(confidences, np.array(targets), NUM_SAMPLES)
+
+# Plot "clear" examples
+inspect_batch(bmnist["x_test"][interesting["posmax"]], 
+              confidences[interesting["posmax"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Clear positives ({metric})")
+
+inspect_batch(bmnist["x_test"][interesting["negmax"]],
+              confidences[interesting["negmax"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Clear negatives ({metric})")
+
+# Plot "confusing" examples
+inspect_batch(bmnist["x_test"][interesting["posmin"]], 
+              confidences[interesting["posmin"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Confusing positives ({metric})")
+
+inspect_batch(bmnist["x_test"][interesting["negmin"]], 
+              confidences[interesting["negmin"]].round(decimals=ROUNDING_DECIMALS),
+              title=f"Confusing negatives ({metric})");
+# %%
