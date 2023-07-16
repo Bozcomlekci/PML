@@ -100,7 +100,7 @@
        K = P_t^{-}H^{t}(HP^{-}_t H^t + R)^{-1}
    \end{equation}
    
-   We simplify the equation \ref{update-step} by first muliplying through then using the Woodburry identity which is given as:
+   We simplify the equation \ref{update-step} by first muliplying through then using the Woodburry identity \cite{ enwiki:1158363831} which is given as:
    
    \begin{equation*}
     (A_w + U_wC_wV_w)^{-1} = A_w^{-1} - A_w^{-1}U_w(C_w^{-1} + V_wA_w^{-1}U_w)^{-1} V_wA_w^{-1}
@@ -112,7 +112,7 @@
         \label{update-1}
    \end{equation}
    
-   We note that the left hand side follows the form of the woodburry identity where $A_w = (P_t^{-})^{-1}$, $U_w = H^T$, $V_w = H$, $C = R^{-1}$.
+   We note that the left hand side follows the form of the Woodburry Identity\cite{enwiki:1158363831} where $A_w = (P_t^{-})^{-1}$, $U_w = H^T$, $V_w = H$, $C = R^{-1}$.
    
    Thus we can simplify the LHS of \ref{update-1} to 
 
@@ -222,7 +222,7 @@ Consider $C^T = (Q^{-1} + H^T R^{-1}H)^{-1}Q^{-1}A$, where
 
 We note that $R, Q$ is are PSD as they are covariance matrices of normal distributions, with $R = R^T$ and  $Q = Q^T$ respectively.  Moreover the matrix 
 $H Q H^T$  is also symmetric as because assuming an 
-eigendecompistion $H^T ( L \Lambda L ^T ) H$ of $Q$
+eigendecompistion \cite{enwiki:1158373968} $H^T ( L \Lambda L ^T ) H$ of $Q$
 then 
 \begin{multline}
     HQH^T = (H^T (L \Lambda L^T) H)^T =  (H^T (L \Lambda L^T) ^T (H^T)^T \\ 
@@ -242,6 +242,15 @@ Thus taking  the transpose of  $C^T$ in equation \ref{c-transpose} yields
    =A^T - A^T H^T ( R +   HQH^T)^{-1} H Q  = C
 \end{multline}
 
-\bibliography{05.06.2023}
+Thus the final mapping we get is 
+
+\begin{enumerate}
+    \item  $C = A^TQ^{-1}(Q^{-1} + H^T R^{-1}H)^{-1} = A^T - A^T H^T ( R +   HQH^T)^{-1} H Q  $
+    \item  $C^T = (Q^{-1} + H^T R^{-1}H)^{-1}Q^{-1}A = A - QH^T (R + HQH^T)^{-1} H A$
+    \item $Z  = (Q^{-1} - Q^{-1}(Q^{-1}  + H^TR^{-1}H) Q^{-1})^{-1} $
+    \item $U^T = A, U = A^T$
+\end{enumerate}
+
+\bibliography{ex-11}
 \bibliographystyle{plainnat}
 \end{document}
