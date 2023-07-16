@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex ex-11"] 1689523171 "ex-11.aux" "ex-11.bbl" "ex-11" 1689523173
+["bibtex ex-11"] 1689523171 "ex-11.aux" "ex-11.bbl" "ex-11" 1689523818
   "/usr/local/texlive/2021/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "ex-11.aux" 1689523173 1607 625af44955aae6e1deb5fff98cd3aa3f "pdflatex"
+  "ex-11.aux" 1689523814 1607 625af44955aae6e1deb5fff98cd3aa3f "pdflatex"
   "ex-11.bib" 1689516562 608 09e60b4de1fa18741928ece178ab5862 ""
   (generated)
-  "ex-11.bbl"
   "ex-11.blg"
-["pdflatex"] 1689523171 "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.tex" "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.pdf" "ex-11" 1689523173
-  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.aux" 1689523173 1607 625af44955aae6e1deb5fff98cd3aa3f ""
-  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.tex" 1689523169 10862 ad279486123bb31c37f3bc628e758f7a ""
+  "ex-11.bbl"
+["pdflatex"] 1689523813 "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.tex" "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.pdf" "ex-11" 1689523818
+  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.aux" 1689523814 1607 625af44955aae6e1deb5fff98cd3aa3f ""
+  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.tex" 1689523818 10859 761b1477c699dbdde4cf363d81358254 ""
   "/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2021/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2021/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm" 1136768653 2532 9ad73cf4dd2173a847f2a5f5608e0b9a ""
@@ -168,16 +168,16 @@
   "/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1616695603 5169178 a2ce6e2d73f603b690db6777d06dbccb ""
   "/usr/local/texlive/2021/texmf-var/web2c/pdftex/pdflatex.fmt" 1634941941 2724739 b99ef0bf8184374c05024f77ff6ab535 ""
   "/usr/local/texlive/2021/texmf.cnf" 1616695596 577 4c1911a7228e554c6032256d3cf5567d ""
-  "ex-11.aux" 1689523173 1607 625af44955aae6e1deb5fff98cd3aa3f "pdflatex"
+  "ex-11.aux" 1689523814 1607 625af44955aae6e1deb5fff98cd3aa3f "pdflatex"
   "ex-11.bbl" 1689523171 959 7085958539f1978150afd87dcb23036a "bibtex ex-11"
-  "ex-11.out" 1689523173 84 e59dd7ac60ccc1a2aa5712cd1a0bf11a "pdflatex"
-  "ex-11.tex" 1689523169 10862 ad279486123bb31c37f3bc628e758f7a ""
+  "ex-11.out" 1689523814 84 e59dd7ac60ccc1a2aa5712cd1a0bf11a "pdflatex"
+  "ex-11.tex" 1689523818 10859 761b1477c699dbdde4cf363d81358254 ""
   "tufte-common.def" 1689499955 66821 b7511c5946078b0c502b75317c740631 ""
   "tufte-handout.cls" 1689499926 921 7d13c8c1376640d98e619aa85b8154f9 ""
   (generated)
   "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.pdf"
-  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.log"
-  "ex-11.pdf"
   "ex-11.aux"
+  "ex-11.pdf"
   "ex-11.out"
   "ex-11.log"
+  "/Users/aakarsh/src/TUE-SPRING-2023/PML/ex11/theory/ex-11.log"
