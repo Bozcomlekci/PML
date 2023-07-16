@@ -22,7 +22,8 @@
 \graphicspath{{graphics/}}
 
 \title{Excercise-11}
-\author[ Batuhan, Oezcoemlekci(Matrikelnummer: 6300476) and Aakarsh, Nair( Matrikelnummer: 6546577)]{ML-4202: Probabilistic Machine Learning (Summer 2023)}
+\author{Batuhan, Oezcoemlekci (Matrikelnummer: 6300476) \\
+         Aakarsh, Nair (Matrikelnummer: 6546577)}
 \date{16 June 2023}  
 
 % The following package makes prettier tables.  We're all about the bling!
@@ -61,7 +62,7 @@
 \section{Exercise}
 
 \begin{enumerate}[(a)]
-    \item 
+    \item Derive $f$, that is a formula for the update mean $m_t$ depending on only the previous filtering mean $m_{t-1}$ and not the prediction mean $m_t^{-}$.
     
     \item Now we note that the function for $g$  for the filter covariance does not depend on the data. In fact, the Kalman filter covariance taks on the form of the so-called \emph{discrete-time algabraic Riccati equation(DARE)},. i.e an implicit equation of the form: 
     \begin{equation*}
@@ -191,14 +192,55 @@ Comparing with the equation
     We get: 
     \begin{itemize}
         \item  $C = A^TQ^{-1}(Q^{-1} + H^T R^{-1}H)^{-1}$
-        \item  $C^T = (Q^{-1} + H^T R^{-1}H^{-1})^{-1}Q^{-1}A$
+        \item  $C^T = (Q^{-1} + H^T R^{-1}H)^{-1}Q^{-1}A$
         \item $Z  = (Q^{-1} - Q^{-1}(Q^{-1}  + H^TR^{-1}H) Q^{-1})^{-1} $
-        \item $U^T = A , U = A^T$
+        \item $U^T = A, U = A^T$
     \end{itemize}
 \end{enumerate}
 
-We still need to show that the terms $C$ and $C^T$ are 
-transposes of each other: 
+We still need to show that the terms $C$ and $C^T$ are transposes 
+of each other Consider, $C = A^TQ^{-1}(Q^{-1} + H^T R^{-1}H)^{-1}$
+
+Let $A_w = Q^{-1}$, $U_w = H^T$, $C_w = R^{-1}$, $V_w = H$ then 
+we get 
+
+\begin{multline*}
+    C  = A^{T}Q^{-1}(Q^{-1} + H^{T}R^{-1} H)^{-1} 
+       =  A^T Q^{-1} ( Q - Q H^T (R + HQH^T)^{-1}HQ) \\ 
+       =  A^T  - A^T H^T ( R + HQH^T)^{-1}  HQ
+\end{multline*}
+
+
+Consider $C^T = (Q^{-1} + H^T R^{-1}H)^{-1}Q^{-1}A$, where
+
+\begin{multline}
+   C^T = (Q^{-1} + H^T R^{-1}H)^{-1}Q^{-1}A  
+       = (Q  - Q H^T (R + HQH^T)^{-1} HQ) Q^{-1}A \\ 
+       = A - QH^T (R + HQH^T)^{-1} H A
+       \label{c-transpose}
+\end{multline}
+
+We note that $R, Q$ is are PSD as they are covariance matrices of normal distributions, with $R = R^T$ and  $Q = Q^T$ respectively.  Moreover the matrix 
+$H Q H^T$  is also symmetric as because assuming an 
+eigendecompistion $H^T ( L \Lambda L ^T ) H$ of $Q$
+then 
+\begin{multline}
+    HQH^T = (H^T (L \Lambda L^T) H)^T =  (H^T (L \Lambda L^T) ^T (H^T)^T \\ 
+     = H (L \Lambda L^T) H^T) =   HQH^T
+\end{multline}
+
+Thus we see that $(R + HQH^T)^{-1}$ is symmetric as : 
+
+\begin{multline}
+   ((R + HQH^T)^{-1} )^T =  (R^T + HQH^T)^{-1} = (R + HQH^T)^{-1}
+\end{multline}
+
+Thus taking  the transpose of  $C^T$ in equation \ref{c-transpose} yields 
+\begin{multline}
+   (C^T)^T = (A - QH^T (R + HQH^T)^{-1} H A)^T  \\
+   = A^T - A^T H^T ( R +   HQH^T)^{-1} H Q^T \\ 
+   =A^T - A^T H^T ( R +   HQH^T)^{-1} H Q  = C
+\end{multline}
 
 \bibliography{05.06.2023}
 \bibliographystyle{plainnat}
