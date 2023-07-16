@@ -1,0 +1,205 @@
+\documentclass{tufte-handout}
+
+%\geometry{showframe}% for debugging purposes -- displays the margins
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% Set up the images/graphics package
+\usepackage{graphicx}
+\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
+\graphicspath{{graphics/}}
+
+\title{Excercise-11}
+\author[ Batuhan, Oezcoemlekci(Matrikelnummer: 6300476) and Aakarsh, Nair( Matrikelnummer: 6546577)]{ML-4202: Probabilistic Machine Learning (Summer 2023)}
+\date{16 June 2023}  
+
+% The following package makes prettier tables.  We're all about the bling!
+\usepackage{booktabs}
+
+% The units package provides nice, non-stacked fractions and better spacing
+% for units.
+\usepackage{units}
+
+% The fancyvrb package lets us customize the formatting of verbatim
+% environments.  We use a slightly smaller font.
+\usepackage{fancyvrb}
+\fvset{fontsize=\normalsize}
+
+% Small sections of multiple columns
+\usepackage{multicol}
+
+% Provides paragraphs of dummy text
+\usepackage{lipsum}
+
+% These commands are used to pretty-print LaTeX commands
+\newcommand{\doccmd}[1]{\texttt{\textbackslash#1}}% command name -- adds backslash automatically
+\newcommand{\docopt}[1]{\ensuremath{\langle}\textrm{\textit{#1}}\ensuremath{\rangle}}% optional command argument
+\newcommand{\docarg}[1]{\textrm{\textit{#1}}}% (required) command argument
+\newenvironment{docspec}{\begin{quote}\noindent}{\end{quote}}% command specification environment
+\newcommand{\docenv}[1]{\textsf{#1}}% environment name
+\newcommand{\docpkg}[1]{\texttt{#1}}% package name
+\newcommand{\doccls}[1]{\texttt{#1}}% document class name
+\newcommand{\docclsopt}[1]{\texttt{#1}}% document class option name
+
+\begin{document}
+
+\maketitle% this prints the handout title, author, and date
+
+%\printclassoptions
+\section{Exercise}
+
+\begin{enumerate}[(a)]
+    \item 
+    
+    \item Now we note that the function for $g$  for the filter covariance does not depend on the data. In fact, the Kalman filter covariance taks on the form of the so-called \emph{discrete-time algabraic Riccati equation(DARE)},. i.e an implicit equation of the form: 
+    \begin{equation*}
+        P_t = C^TP_{t-1}C - (C^T P_{t-1}U)(Z + U^TP_{t-1}U)^{-1}(U^TP_{t-1}C) + N
+    \end{equation*}
+
+    Derive the exact form of the Riccati equation by inserting the 
+    predicted covariance matrix into the updated covariance matrix (similar to what you did with the mean). Identify the relationship
+    between $(C, U, Z, N)$ and $(A, Q, H, R)$.
+
+    
+    \textbf{Hints:}
+    \begin{itemize}
+        \item Make sure that there is no $m^{-}$  or $P^{-}$ hidden in some auxilliary variables.
+        \item You an write the update step for the covariance matrix $P_t = (I  - KH)P_t^{-}$ where $K$ is the Kalman gain and $I$ is the  idntity matrix. This should simplify things.
+    \end{itemize}
+
+    \textbf{Answer:}
+
+   We start with the equations we know that is:
+   \begin{equation}
+        P_t^{-} = AP_{t-1}A^T + Q
+        \label{predict-step}
+   \end{equation}
+   as well as :
+   
+   \begin{equation}
+      P_t  = (I  - KH)P_t^{-}
+      \label{update-step}
+   \end{equation}
+
+   We know the kalman gain is given by: 
+   
+   \begin{equation}
+       K = P_t^{-}H^{t}(HP^{-}_t H^t + R)^{-1}
+   \end{equation}
+   
+   We simplify the equation \ref{update-step} by first muliplying through then using the Woodburry identity which is given as:
+   
+   \begin{equation*}
+    (A_w + U_wC_wV_w)^{-1} = A_w^{-1} - A_w^{-1}U_w(C_w^{-1} + V_wA_w^{-1}U_w)^{-1} V_wA_w^{-1}
+   \end{equation*}
+
+   Thus we get:
+   \begin{equation}
+        P_t = P_t^{-} -  P_t^{-}H^T(H P^{-}_{t}H^T + R)^{-1}H P_t^{-}
+        \label{update-1}
+   \end{equation}
+   
+   We note that the left hand side follows the form of the woodburry identity where $A_w = (P_t^{-})^{-1}$, $U_w = H^T$, $V_w = H$, $C = R^{-1}$.
+   
+   Thus we can simplify the LHS of \ref{update-1} to 
+
+   \begin{equation}
+       P_t = ((P_t^{-})^{-1} +   H^TR^{-1}H)^{-1}
+       \label{simplified-update-1}
+   \end{equation}
+
+    Now substituting \ref{predict-step}  into \ref{simplified-update-1} we get:
+    
+    \begin{equation}
+       P_t = ((Q + AP_{t-1}A^T)^{-1} + H^TR^{-1}H)^{-1}
+    \end{equation}
+
+    Using woodburry identity with $A_w = Q$ $U_w = A$, $C_w = P_{t-1}$, $V = A^T$ simplifying the inner inverse we get:
+    
+    \begin{equation}
+       P_t = \left( (Q^{-1} - Q^{-1}A(P_{t-1}^{-1} + A^TQ^{-1}A)^{-1}A^{T}Q^{-1})+ H^TR^{-1}H \right)^{-1}
+    \end{equation}
+We can re arrange the terms collecting terms without $P_{t-1}$  to get: 
+
+    \begin{equation}
+       P_t = \left( (Q^{-1}  + H^TR^{-1}H)   - Q^{-1}A(P_{t-1}^{-1} + A^TQ^{-1}A)^{-1}A^{T}Q^{-1} \right)^{-1}
+    \end{equation}
+
+   Let $K_1 =(Q^{-1}  + H^TR^{-1}H)$ , then we note that we have, 
+   $A_w = K_1$, $U_w = Q^{-1}A$, $C_w =-(P_{t-1}^{-1} + A^TQ^{-1}A)^{-1} $ and $V_w = A^TQ^{-1}$, Thus we can open the inverse to get:
+
+  \begin{equation} 
+    P_t = K_1^{-1}  - K_1^{-1} (Q^{-1}A) \left( -(P_{t-1}^{-1} + A^TQ^{-1}A) + A^TQ^{-1} K_1^{-1} Q^{-1}A \right)^{-1} (A^T Q^{-1}) K_1^{-1}
+    \label{before-k2-expanded}
+  \end{equation}
+
+ Consider the inner inverse term:  
+ \begin{equation}
+     K_2 :=  (-(P_{t-1}^{-1} + A^TQ^{-1}A) + A^TQ^{-1} K_1^{-1} Q^{-1}A)^{-1} 
+ \end{equation} 
+  Simplifying it we get: 
+  \begin{equation}
+     K_2 =  -\left(P_{t-1}^{-1} + A^T(  Q^{-1} - Q^{-1} K_1^{-1} Q^{-1})A \right)^{-1} 
+  \end{equation}
+  Where $A_w = P_{t-1}^{-1}$, $U_w = A^T$, $C_w = (  Q^{-1} - Q^{-1} K_1^{-1} Q^{-1})$  and $V_w = A$, using woodburry identity we get: 
+
+  \begin{equation} 
+    K_2 = - \left( P_{t-1}  - P_{t-1}A^{T}( (Q^{-1} - Q^{-1}K_1 Q^{-1})^{-1} + A P_{t-1} A^T)^{-1}A P_{t-1}  \right)
+  \end{equation}
+
+  \begin{equation}
+     K_2 =  -P_{t-1}  + P_{t-1}A^{T}( (Q^{-1} - Q^{-1}K_1 Q^{-1})^{-1} + A P_{t-1} A^T)^{-1}A P_{t-1}   
+     \label{k2-expanded}
+  \end{equation}
+
+Substituting \ref{k2-expanded} into \ref{before-k2-expanded}  we get:
+
+\begin{multline}
+    P_t = K_1^{-1} - K_1^{-1} (Q^{-1}A) \left(-P_{t-1}  + P_{t-1}A^{T}( (Q^{-1} - Q^{-1}K_1 Q^{-1})^{-1} + A P_{t-1} A^T)^{-1}A P_{t-1}  \right) (A^T Q^{-1}) K_1^{-1}
+\end{multline}
+
+Thus $P_t$ becomes:
+\begin{multline}
+     P_t = \\ 
+     K_1^{-1} (Q^{-1}A) P_{t-1} (A^T Q^{-1}) K_1^{-1}\\
+   - (K_1^{-1} (Q^{-1}A)  
+    P_{t-1}A^{T})( (Q^{-1} - Q^{-1}K_1 Q^{-1})^{-1} + A P_{t-1} A^T)^{-1} (A P_{t-1} (A^T Q^{-1}) K_1^{-1}) \\ 
+    + K_1^{-1} 
+\end{multline}
+
+Comparing with the equation 
+    \begin{equation*}
+        P_t = C^TP_{t-1}C - (C^T P_{t-1}U)(Z + U^TP_{t-1}U)^{-1}(U^TP_{t-1}C) + N
+    \end{equation*}
+
+    We see that $C = A^TQ^{-1}K_1^{-1} $ and  $C^T = K_1^{-1} Q^{-1}A$ , $N = K_1^{-1}$, $Z = (Q^{-1} - Q^{-1}K_1 Q^{-1})^{-1} $, $U^T =A $ and $U = A^T$
+
+    Substituting the value of $K_1=(Q^{-1}  + H^TR^{-1}H) $
+
+    We get: 
+    \begin{itemize}
+        \item  $C = A^TQ^{-1}(Q^{-1} + H^T R^{-1}H)^{-1}$
+        \item  $C^T = (Q^{-1} + H^T R^{-1}H^{-1})^{-1}Q^{-1}A$
+        \item $Z  = (Q^{-1} - Q^{-1}(Q^{-1}  + H^TR^{-1}H) Q^{-1})^{-1} $
+        \item $U^T = A , U = A^T$
+    \end{itemize}
+\end{enumerate}
+
+We still need to show that the terms $C$ and $C^T$ are 
+transposes of each other: 
+
+\bibliography{05.06.2023}
+\bibliographystyle{plainnat}
+\end{document}
