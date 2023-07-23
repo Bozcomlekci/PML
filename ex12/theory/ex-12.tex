@@ -197,6 +197,8 @@ transition model matrices. Derive closed form updates for both $A$ and $Q$ by co
         \end{aligned}
     \end{multline}        
 
+    Thus we have $A^{*} = C \Phi^{-1} $.
+    
     \item Compute $Q$:
 
     We again compute the critical point by computing the matrix derivative with respect to $Q$ and setting it to zero. Canceling the the constant
@@ -267,9 +269,9 @@ Taken together we get
 \end{multline}
 
 
-Thus from the uniqueness of the inverse we get  
+Thus from the uniqueness of the inverse we get:
 \begin{equation}
-    Q = Z = (\Sigma - CA^T - AC^T + A \Phi A^T)
+    Q^{*} = Z = (\Sigma - CA^T - AC^T + A \Phi A^T)
 \end{equation}
 
 \end{enumerate}
