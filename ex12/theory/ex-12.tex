@@ -179,7 +179,7 @@ transition model matrices. Derive closed form updates for both $A$ and $Q$ by co
     \end{multline}
    
     Thus taken together , using the linearity of the trace operator  we can separate the terms we get: 
-    
+
     \begin{multline}
         \begin{aligned}
             \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}AC^T  + Q^{-1}CA^T  \right] &= Q^{-1}C + Q^{-1}C \\
@@ -197,7 +197,81 @@ transition model matrices. Derive closed form updates for both $A$ and $Q$ by co
         \end{aligned}
     \end{multline}        
 
-    \item Compute $Q$: 
+    \item Compute $Q$:
+
+    We again compute the critical point by computing the matrix derivative with respect to $Q$ and setting it to zero. Canceling the the constant
+    from the linear operators for trace and derivative.
+    
+    Let $$Z =  \left[  \Sigma -  CA^{T} - A C^T + A \Phi A^T \right]$$
+
+    \begin{multline}
+        \begin{aligned}
+           \frac{\partial} {\partial Q} \left[ -\frac{N}{2} \log |2\pi Q|  - \frac{N}{2} \operatorname{tr} \left( Q^{-1} Z \right)\right] = 0 \\
+           \frac{\partial} {\partial Q} \left[ -\log |2\pi Q|  - \frac{\partial} {\partial Q} \operatorname{tr} \left( Q^{-1}  Z\right)\right] = 0 \\
+           \frac{\partial} {\partial Q} \left[ -\log |2\pi Q| \right]  - \left[ \frac{\partial} {\partial Q} \operatorname{tr} \left( Q^{-1} Z \right) \right] = 0 \\
+           \frac{\partial} {\partial Q} \left[ -\log |Q| \right]  - \left[ \frac{\partial} {\partial Q} \operatorname{tr} \left( Q^{-1} Z \right) \right] = 0 \\
+           -\left[ \frac{\partial} {\partial Q} \operatorname{tr} \left( Q^{-1} Z \right) \right] = \frac{\partial} {\partial Q} \left[ \log |Q| \right]   \\ 
+        \end{aligned}
+    \end{multline}
+   
+    Consider the LHS, we use the following matrix differential form of the trace.
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial}{\partial X_d} \operatorname{tr}(A_{d}X_{d}^{-1}B_{d}) &= -X_d^{-T}A_d^{T} B_d^T X_d^{-T}
+        \end{aligned}
+    \end{multline} 
+
+    With $A_d = I$, $B_d = Z$ and $X_d = Q$ , and the fact that $Q^{-T} = Q^{-1}$ being inverse of PSD metrix we get:
+   \begin{multline} 
+    \begin{aligned}
+        \frac{\partial}{\partial Q} (Q^{-1}Z) &= -Q^{-T}Z^T Q^{-T}  = - Q^{-1} Z^T Q^{-1}\\
+    \end{aligned}
+   \end{multline}
+
+   We also note that $Z = Z^T$  as we have that $\Sigma$ and $\Phi$ are symmetric matrices.
+   \begin{multline}
+    \begin{aligned}
+        Z^T &= (\Sigma - CA^T - AC^T + A \Phi A^T )^T &=  (\Sigma^T  - AC^T - C A^T  + A \Phi^T A^T)\\
+        & = (\Sigma - CA^T - AC^T + A \Phi A^T ) &= Z 
+    \end{aligned} 
+ \end{multline}
+
+Thus we get the LHS to be :
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial}{\partial X_d} \operatorname{tr}(Q^{-1}Z) &= -Q^{-1} Z Q^{-1} 
+        \end{aligned}
+    \end{multline} 
+
+For the RHS we use the matrix identity:
+\begin{multline}
+    \begin{aligned}
+        \frac{\partial}{\partial X_d} \log |X_d| &= X_d^{-T}
+    \end{aligned}
+\end{multline}
+
+With $X_d = Q$ we get the RHS to be:
+\begin{multline}
+    \begin{aligned}
+        \frac{\partial}{\partial Q} \log |Q| &= Q^{-T} = Q^{-1}
+    \end{aligned}
+\end{multline}
+
+Taken together we get 
+\begin{multline}
+    \begin{aligned}
+    -Q^{-1} Z Q^{-1} &= -Q^{-1} \\
+    \implies Q^{-1} Z Q^{-1} &= Q^{-1}  \\
+    \implies Z Q^{-1} &= I 
+    \end{aligned}
+\end{multline}
+
+
+Thus from the uniqueness of the inverse we get  
+\begin{equation}
+    Q = Z = (\Sigma - CA^T - AC^T + A \Phi A^T)
+\end{equation}
+
 \end{enumerate}
 
 \bibliography{ex-12}
