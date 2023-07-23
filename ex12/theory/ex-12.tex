@@ -1,0 +1,205 @@
+\documentclass{tufte-handout}
+
+%\geometry{showframe}% for debugging purposes -- displays the margins
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% Set up the images/graphics package
+\usepackage{graphicx}
+\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
+\graphicspath{{graphics/}}
+
+\title{Excercise-12}
+
+\author{Batuhan, Oezcoemlekci (Matrikelnummer: 6300476) \\
+        Aakarsh, Nair (Matrikelnummer: 6546577)}
+\date{16 June 2023}  
+
+% The following package makes prettier tables.  We're all about the bling!
+\usepackage{booktabs}
+
+% The units package provides nice, non-stacked fractions and better spacing
+% for units.
+\usepackage{units}
+
+% The fancyvrb package lets us customize the formatting of verbatim
+% environments.  We use a slightly smaller font.
+\usepackage{fancyvrb}
+\fvset{fontsize=\normalsize}
+
+% Small sections of multiple columns
+\usepackage{multicol}
+
+% Provides paragraphs of dummy text
+\usepackage{lipsum}
+
+% These commands are used to pretty-print LaTeX commands
+\newcommand{\doccmd}[1]{\texttt{\textbackslash#1}}% command name -- adds backslash automatically
+\newcommand{\docopt}[1]{\ensuremath{\langle}\textrm{\textit{#1}}\ensuremath{\rangle}}% optional command argument
+\newcommand{\docarg}[1]{\textrm{\textit{#1}}}% (required) command argument
+\newenvironment{docspec}{\begin{quote}\noindent}{\end{quote}}% command specification environment
+\newcommand{\docenv}[1]{\textsf{#1}}% environment name
+\newcommand{\docpkg}[1]{\texttt{#1}}% package name
+\newcommand{\doccls}[1]{\texttt{#1}}% document class name
+\newcommand{\docclsopt}[1]{\texttt{#1}}% document class option name
+
+\begin{document}
+
+\maketitle% this prints the handout title, author, and date
+
+%\printclassoptions
+\section{Exercise}
+
+\textbf{Theory Question} Parameter inference with exectation maximization.
+
+Consider a linear Gaussian model with  the following structure:
+\begin{itemize}
+    \item $x_0 \sim \mathcal{N}(m_0(\theta), P_0(\theta))$
+    \item $x_k \sim \mathcal{N}(A(\theta) x_{k-1}, Q(\theta))$
+    \item $y_k \sim \mathcal{N}(H(\theta) x_{k}, R(\theta))$
+\end{itemize}
+
+\textbf{To-do:} Estimate $\theta$ for some data $y_{1:N}$ an alternate to 
+maximizing the likelihood (discussed in lecture) is the EM-Algorithm.
+It works as follows: 
+\begin{enumerate}
+    \item  Start from an initial guess $\theta^{(0)}$.
+    \item For $n = 0, 1, 2, \dots$ do:
+    \begin{enumerate}
+        \item \textbf{E-Step:} Compute:  \\
+        \begin{equation}
+            \mathcal{Q}\left( \theta, \theta^{(n)} \right) := \int p(x_{0:N} | y_{0:N}, \theta^{(n)}) \log p(x_{0:N}, y_{0:N} | \theta) dx_{0:N}
+        \end{equation}
+            
+        \item \textbf{M-Step:} Compute: $\theta^{(n+1)} := \argmax_{\theta} \mathcal{Q}(\theta, \theta^{(n)})$ 
+    \end{enumerate}
+\end{enumerate}
+
+In a considered case of linear Gaussian state space model, $\mathcal{Q}(\theta, \theta^{(n)})$ can be computed analytically. 
+It is of the form: 
+    \begin{multline}
+        \begin{aligned}
+        \mathcal{Q}(^{\theta, \theta^{(n)}}) = \\ 
+        & -\frac{1}{2} \log|2\pi P_0(\theta)| - \frac{N}{2} \log|2\pi Q(\theta)| - \frac{N}{2} \log|2\pi R(\theta)| \\
+        & - \frac{1}{2} \operatorname{tr} \left( P_0^{-1}(\theta) \left[ P_0^{(s)} + (m_0^{(s)} - m_0(\theta))(m_0^{(s)} - m_0(\theta))^T \right] \right) \\ 
+        & - \frac{1}{2} \operatorname{tr} \left( Q^{-1}(\theta) \left[  \Sigma -  CA(\theta)^T - A(\theta) C^T + A(\theta) \Phi A(\theta)^T \right] \right) \\ 
+        & - \frac{1}{2} \operatorname{tr} \left( R^{-1}(\theta) \left[  D-  BH(\theta)^T - H(\theta) B^T + H(\theta) \Sigma H(\theta)^T \right] \right) \\ 
+        \end{aligned}
+    \end{multline}
+Where the following quantities are computed form the results of the Rauch-Tung-Striebel smoother run with parameter values $\theta^{(n)}$:
+
+\begin{multline*}
+    \begin{aligned}
+        \Sigma & = \frac{1}{N} \sum_{k=1}^N \left( P_k^{(s)} + m_k^{s} (m_{k}^{s})^T \right)   \\
+        \Phi & = \frac{1}{N} \sum_{k=1}^N \left(P_{k-1}^{(s)} + m_{k-1}^{s} (m_{k-1}^{s})^T \right) \\
+        B & = \frac{1}{N} \sum_{k=1}^N \left( y_k (m_{k}^{(s)})^T \right)\\
+        C &= \frac{1}{N} \sum_{k=1}^{N} \left( P_k^{(s)} G_{k-1}^T + m_k^{(s)} (m_{k-1}^{s})^T \right) \\
+        D &= \frac{1}{N} \sum_{k=1}^{N} \left( y_k y_{k}^T \right) 
+    \end{aligned}
+\end{multline*}
+
+\emph{Exercise:} Let $\theta = (A, Q)$, that is the model parameters are exactly the full 
+transition model matrices. Derive closed form updates for both $A$ and $Q$ by computing the M-step.
+
+
+\begin{enumerate}[(a)]
+    \item Compute $A$:
+    We use the fact that trace is a linear operator.   
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial Q}{\partial A} &= 0 \\
+             & \implies \frac{\partial}{\partial A} \left[ -\frac{N}{2} \operatorname{tr} \left( Q^{-1} (\Sigma - CA^{T} - AC^T + A \Phi A^T)  \right) \right]  = 0 \\
+             &\implies \frac{N}{2} \frac{\partial}{\partial A} \operatorname{tr}\left[ -Q^{-1}AC^T   - Q^{-1}CA^T  + Q^{-1}A \Phi A^T   \right] = 0 \\ 
+             &\implies \frac{\partial}{\partial A} \operatorname{tr}\left[ -Q^{-1}AC^T   - Q^{-1}CA^T + Q^{-1}A \Phi A^T   \right] = 0 \\ 
+             &\implies \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}A \Phi A^T   \right] = \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}AC^T  + Q^{-1}CA^T  \right]  
+        \end{aligned}
+    \end{multline} 
+
+    Now consider the LHS: 
+    \begin{multline}
+       \begin{aligned} 
+            \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}A \Phi A^T   \right]  
+       \end{aligned}
+    \end{multline}
+    This is known matrix differential form of the trace.
+    \begin{equation*}
+       \frac{\partial}{\partial{X_d}} \operatorname{tr}\left[ A_dX_dB_dX_d^TC_d \right] = A_d^{T}C_d^{T}X_dB_d^{T} + C_dA_dX_dB_d 
+    \end{equation*}
+    Where $A_d = Q^{-1}$, $B_d = \Phi$, $C_d = I$ and $X_d = A$.
+
+    Thus we have  we use the symmetry of the postive semi-definte matrix inverse   $Q^{-1} = (Q^{-1})^T$ to simplify the LHS:
+    \begin{multline}
+       \begin{aligned} 
+            \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}A \Phi A^T   \right]   &= Q^{-T} I^T A \Phi^T + I Q^{-1} A \Phi \\
+            &= Q^{-T} A \Phi^T + Q^{-1} A \Phi \\
+            &= Q^{-T} A \Phi^T + Q^{-1} A \Phi \\
+            &= 2 Q^{-1} A \Phi \\
+       \end{aligned}
+    \end{multline}
+
+    For the RHS we can we can simplify the first term using:  
+
+    \begin{multline}
+    \begin{aligned}     
+        \frac{\partial}{\partial X_d} \operatorname{tr}\left[ A_d X_d B_d \right] &=  A_d^T B_d^T 
+    \end{aligned}
+    \end{multline}
+
+    With $A_d = (Q^{-1})$ and $X_d = A$ and $B_d = C^T$ for the first term we get:
+    
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}AC^T  \right] &=  Q^{-T}C &= Q^{-1}C \\
+        \end{aligned} 
+    \end{multline}
+    
+    And for the second term we can use the following matrix identity we get: 
+    \begin{multline}
+    \begin{aligned}     
+        \frac{\partial}{\partial X_d} \operatorname{tr}\left[ A_d X_d^T \right] &= A_d
+    \end{aligned}
+    \end{multline}
+    With $A_d = (Q^{-1})C$ and $X_d = A$ the second term simplifies to:  
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}CA^T  \right] &=  Q^{-1}C \\
+        \end{aligned} 
+    \end{multline}
+   
+    Thus taken together , using the linearity of the trace operator  we can separate the terms we get: 
+    
+    \begin{multline}
+        \begin{aligned}
+            \frac{\partial}{\partial A} \operatorname{tr}\left[ Q^{-1}AC^T  + Q^{-1}CA^T  \right] &= Q^{-1}C + Q^{-1}C \\
+            &= 2 Q^{-1}C \\    
+        \end{aligned}
+    \end{multline}
+
+    Thus LHS and RHS together becomes: 
+    \begin{multline}
+        \begin{aligned}
+            2 Q^{-1} A \Phi &= 2 Q^{-1} C \\
+            Q^{-1} A \Phi &=  Q^{-1} C \\
+            A \Phi &=  C \\
+            A &=  C \Phi^{-1} 
+        \end{aligned}
+    \end{multline}        
+
+    \item Compute $Q$: 
+\end{enumerate}
+
+\bibliography{ex-12}
+\bibliographystyle{plainnat}
+\end{document}
